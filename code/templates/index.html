@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered PDF Question Answerer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>AI-Powered PDF Question Answerer</h1>
+        <!-- PDF Upload Form -->
+        <form id="upload-form" enctype="multipart/form-data">
+            <label for="file">Upload a PDF:</label>
+            <input type="file" id="file" name="file" accept="application/pdf">
+            <button type="submit">Upload</button>
+        </form>
+        <div id="upload-status"></div>
+        <br>
+        <!-- Query Form -->
+        <form id="query-form">
+            <label for="query">Ask a Question:</label>
+            <input type="text" id="query" name="query" placeholder="Type your question here...">
+            <button type="submit">Ask</button>
+        </form>
+        <div id="query-status"></div>
+        <div id="response"></div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="hidden">
+        <div class="spinner"></div>
+        <p>Processing your PDF...</p>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('upload-form');
+        const queryForm = document.getElementById('query-form');
+        const responseDiv = document.getElementById('response');
+        const uploadStatus = document.getElementById('upload-status');
+        const queryStatus = document.getElementById('query-status');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        // Show loading spinner
+        function showLoading() {
+            console.log("Spinner shown");
+            loadingSpinner.classList.remove('hidden');
+        }
+
+        // Hide loading spinner
+        function hideLoading() {
+            console.log("Before hiding:", loadingSpinner.classList);
+            loadingSpinner.classList.add('hidden');
+            console.log("After hiding:", loadingSpinner.classList);
+}
+
+        // Ensure spinner is hidden on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded event fired. Hiding spinner.");
+            hideLoading(); // Ensure the spinner is hidden when the page loads
+        });
+
+        // Handle PDF upload
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading(); // Show spinner during processing
+            uploadStatus.innerText = ""; // Clear previous status
+            const formData = new FormData(uploadForm);
+            try {
+                const res = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                uploadStatus.innerText = data.message || data.error;
+            } catch (error) {
+                uploadStatus.innerText = "An error occurred while uploading the PDF.";
+            } finally {
+                hideLoading(); // Hide spinner after processing
+            }
+        });
+
+        // Handle query submission
+        queryForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            queryStatus.innerText = "Processing your query..."; // Show status message
+            const query = document.getElementById('query').value;
+            try {
+                const res = await fetch('/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                const data = await res.json();
+                responseDiv.innerText = data.answer || data.error;
+            } catch (error) {
+                responseDiv.innerText = "An error occurred while processing your query.";
+            } finally {
+                queryStatus.innerText = ""; // Clear status message
+            }
+        });
+    </script>
+</body>
+</html>
